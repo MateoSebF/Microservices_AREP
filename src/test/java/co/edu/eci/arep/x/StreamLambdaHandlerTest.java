@@ -1,6 +1,5 @@
 package co.edu.eci.arep;
 
-
 import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.internal.testutils.AwsProxyRequestBuilder;
 import com.amazonaws.serverless.proxy.internal.testutils.MockLambdaContext;
@@ -19,6 +18,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class StreamLambdaHandlerTest {
@@ -31,14 +34,17 @@ public class StreamLambdaHandlerTest {
         handler = new StreamLambdaHandler();
         lambdaContext = new MockLambdaContext();
     }
-    /*
+    /*    
     @Test
-    public void ping_streamRequest_respondsWithHello() {
-        InputStream requestStream = new AwsProxyRequestBuilder("/ping", HttpMethod.GET)
-                                            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                                            .buildStream();
+    public void ping_streamRequest_respondsWithNumberRequest() {
+        String requestBody = "{\"number\": 42}";
+        InputStream requestStream = new AwsProxyRequestBuilder("/ping", HttpMethod.POST)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .buildStream();
+        
         ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
-
         handle(requestStream, responseStream);
 
         AwsProxyResponse response = readResponse(responseStream);
@@ -46,9 +52,8 @@ public class StreamLambdaHandlerTest {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatusCode());
 
         assertFalse(response.isBase64Encoded());
-
-        assertTrue(response.getBody().contains("pong"));
-        assertTrue(response.getBody().contains("Hello, World!"));
+        assertTrue(response.getBody().contains("number"));
+        assertTrue(response.getBody().contains("42"));
 
         assertTrue(response.getMultiValueHeaders().containsKey(HttpHeaders.CONTENT_TYPE));
         assertTrue(response.getMultiValueHeaders().getFirst(HttpHeaders.CONTENT_TYPE).startsWith(MediaType.APPLICATION_JSON));
@@ -56,9 +61,9 @@ public class StreamLambdaHandlerTest {
 
     @Test
     public void invalidResource_streamRequest_responds404() {
-        InputStream requestStream = new AwsProxyRequestBuilder("/pong", HttpMethod.GET)
-                                            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                                            .buildStream();
+        InputStream requestStream = new AwsProxyRequestBuilder("/invalid", HttpMethod.POST)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .buildStream();
         ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
 
         handle(requestStream, responseStream);
@@ -85,5 +90,20 @@ public class StreamLambdaHandlerTest {
             fail("Error while parsing response: " + e.getMessage());
         }
         return null;
-    }*/
+    }
+
+    public void printRequestStream(InputStream requestStream) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(requestStream, StandardCharsets.UTF_8))) {
+            StringBuilder requestContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                requestContent.append(line).append("\n");
+            }
+            System.out.println("Request Stream Content:\n" + requestContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+         */
+
 }
